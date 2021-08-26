@@ -1,4 +1,5 @@
 from io import StringIO
+from pathlib import Path
 import streamlit as st
 import time
 from detect import detect
@@ -6,7 +7,6 @@ import os
 import sys
 import argparse
 from PIL import Image
-import PIL
 
 
 def _all_subdirs_of(b='.'):
@@ -21,7 +21,7 @@ def _all_subdirs_of(b='.'):
     return result
 
 
-def _get_latest_folder():
+def get_detection_folder():
     '''
         Returns the latest folder in a runs\detect
     '''
@@ -36,25 +36,19 @@ def _save_uploadedfile(uploadedfile):
         f.write(uploadedfile.getbuffer())
 
 
-def _format_func(option):
-    '''
-        Format function for select Key/Value implementation.
-    '''
-    return SOURCES[option]
-
-
 if __name__ == '__main__':
+
+    st.title('YOLOv5 Streamlit App')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', nargs='+', type=str,
                         default='weights/yolov5s.pt', help='model.pt path(s)')
-    # file/folder, 0 for webcam
     parser.add_argument('--source', type=str,
                         default='data/images', help='source')
     parser.add_argument('--img-size', type=int, default=640,
                         help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float,
-                        default=0.25, help='object confidence threshold')
+                        default=0.35, help='object confidence threshold')
     parser.add_argument('--iou-thres', type=float,
                         default=0.45, help='IOU threshold for NMS')
     parser.add_argument('--device', default='',
@@ -84,12 +78,11 @@ if __name__ == '__main__':
     opt = parser.parse_args()
     print(opt)
 
-    SOURCES = {0: "图片检测", 1: "视频检测"}
+    source = ("图片检测", "视频检测")
+    source_index = st.sidebar.selectbox("选择输入", range(
+        len(source)), format_func=lambda x: source[x])
 
-    inferenceSource = str(st.sidebar.selectbox(
-        '选择输入', options=list(SOURCES.keys()), format_func=_format_func))
-
-    if inferenceSource == '0':
+    if source_index == 0:
         uploaded_file = st.sidebar.file_uploader(
             "上传图片", type=['png', 'jpeg', 'jpg'])
         if uploaded_file is not None:
@@ -106,29 +99,25 @@ if __name__ == '__main__':
         if uploaded_file is not None:
             is_valid = True
             with st.spinner(text='资源加载中...'):
-                st.sidebar.video(uploaded_file)
+                # st.sidebar.video(uploaded_file)
                 _save_uploadedfile(uploaded_file)
                 opt.source = f'data/videos/{uploaded_file.name}'
         else:
             is_valid = False
 
-    st.title('YOLOv5 Streamlit App')
-
-    inferenceButton = st.empty()
-
     if is_valid:
-        if inferenceButton.button('开始检测'):
+        if st.button('开始检测'):
+
             detect(opt)
 
-            if inferenceSource != '0':
-                st.warning(
-                    'Video playback not available on deployed version due to licensing restrictions. ')
-                with st.spinner(text='Preparing Video'):
-                    for vid in os.listdir(_get_latest_folder()):
-                        st.video(f'{_get_latest_folder()}/{vid}')
+            if source_index == 0:
+                with st.spinner(text='Preparing Images'):
+                    for img in os.listdir(get_detection_folder()):
+                        st.image(str(Path(f'{get_detection_folder()}') / img))
                     st.balloons()
             else:
-                with st.spinner(text='Preparing Images'):
-                    for img in os.listdir(_get_latest_folder()):
-                        st.image(f'{_get_latest_folder()}/{img}')
+                with st.spinner(text='Preparing Video'):
+                    for vid in os.listdir(get_detection_folder()):
+                        # st.video('runs/detect/exp6/10ss.mp4')
+                        st.video(str(Path(f'{get_detection_folder()}') / vid))
                     st.balloons()
