@@ -153,6 +153,7 @@ def detect(opt, save_img=False):
                             save_path += '.mp4'
                         vid_writer = cv2.VideoWriter(
                             # save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+                            # 参考 https://xugaoxiang.com/2021/08/20/opencv-h264-videowrite
                             save_path, cv2.VideoWriter_fourcc(*'avc1'), fps, (w, h))
                     vid_writer.write(im0)
 
