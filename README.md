@@ -2,9 +2,12 @@
 
 Deploy [YOLOv5](https://github.com/ultralytics/yolov5/releases/tag/v5.0) detection with [Streamlit](https://github.com/streamlit/streamlit)
 
+博文地址： <https://xugaoxiang.com/2021/08/27/yolov5-streamlit/>
+
 # 安装依赖
 
 ```
+# 本地安装的话，请将opencv-python-headless改为opencv-python
 pip install -r requirements.txt
 ```
 

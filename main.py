@@ -9,7 +9,7 @@ import argparse
 from PIL import Image
 
 
-def _all_subdirs_of(b='.'):
+def get_subdirs(b='.'):
     '''
         Returns all sub-directories in a specific Path
     '''
@@ -25,15 +25,7 @@ def get_detection_folder():
     '''
         Returns the latest folder in a runs\detect
     '''
-    return max(_all_subdirs_of(os.path.join('runs', 'detect')), key=os.path.getmtime)
-
-
-def _save_uploadedfile(uploadedfile):
-    '''
-        Saves uploaded videos to disk.
-    '''
-    with open(os.path.join("data", "videos", uploadedfile.name), "wb") as f:
-        f.write(uploadedfile.getbuffer())
+    return max(get_subdirs(os.path.join('runs', 'detect')), key=os.path.getmtime)
 
 
 if __name__ == '__main__':
@@ -99,8 +91,9 @@ if __name__ == '__main__':
         if uploaded_file is not None:
             is_valid = True
             with st.spinner(text='资源加载中...'):
-                # st.sidebar.video(uploaded_file)
-                _save_uploadedfile(uploaded_file)
+                st.sidebar.video(uploaded_file)
+                with open(os.path.join("data", "videos", uploaded_file.name), "wb") as f:
+                    f.write(uploaded_file.getbuffer())
                 opt.source = f'data/videos/{uploaded_file.name}'
         else:
             is_valid = False
@@ -118,6 +111,5 @@ if __name__ == '__main__':
             else:
                 with st.spinner(text='Preparing Video'):
                     for vid in os.listdir(get_detection_folder()):
-                        # st.video('runs/detect/exp6/10ss.mp4')
                         st.video(str(Path(f'{get_detection_folder()}') / vid))
                     st.balloons()
